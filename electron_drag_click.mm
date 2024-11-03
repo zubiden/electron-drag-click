@@ -7,7 +7,8 @@
 static IMP g_originalHitTest;
 static IMP g_originalMouseEvent;
 
-static char kAssociatedObjectKey;
+static char kIsDraggableKey;
+static char kIsDraggingKey;
 
 NSView* viewUnderneathPoint(NSView* self, NSPoint point) {
   NSView *contentView = self.window.contentView;
@@ -21,6 +22,7 @@ NSView* viewUnderneathPoint(NSView* self, NSPoint point) {
       }
     }
   }
+
   return nil;
 }
 
@@ -28,11 +30,10 @@ NSView* swizzledHitTest(id obj, SEL sel, NSPoint point) {
   NSView* originalReturn =
     ((NSView*(*) (id, SEL, NSPoint))g_originalHitTest)(obj, sel, point);
 
-  NSNumber* isDraggable = @(originalReturn == nil);
   objc_setAssociatedObject(obj,
-                          &kAssociatedObjectKey,
-                          isDraggable,
-                          OBJC_ASSOCIATION_COPY_NONATOMIC);
+                           &kIsDraggableKey,
+                           @(originalReturn == nil),
+                           OBJC_ASSOCIATION_COPY_NONATOMIC);
 
   NSView* viewUnderPoint = viewUnderneathPoint(obj, point);
 
@@ -40,15 +41,31 @@ NSView* swizzledHitTest(id obj, SEL sel, NSPoint point) {
 }
 
 void swizzledMouseEvent(id obj, SEL sel, NSEvent* theEvent) {
-  ((void(*) (id, SEL, NSEvent*))g_originalMouseEvent)(obj, sel, theEvent);
-
   NSView* view = obj;
-  NSNumber* isDragging = objc_getAssociatedObject(view.window.contentView,
-                                                  &kAssociatedObjectKey);
+  NSNumber* isDraggable = objc_getAssociatedObject(view.window.contentView,
+                                                  &kIsDraggableKey);
+  NSNumber* isDragging = objc_getAssociatedObject(obj,
+                                                  &kIsDraggingKey);
 
-  if ([theEvent type] == NSEventTypeLeftMouseDown && isDragging.boolValue) {
+  if ([theEvent type] == NSEventTypeLeftMouseDown && isDraggable.boolValue) {
     NSView* self = obj;
     [self.window performWindowDragWithEvent:theEvent];
+  }
+
+  if ([theEvent type] == NSEventTypeLeftMouseDragged && isDraggable.boolValue) {
+    objc_setAssociatedObject(obj,
+                             &kIsDraggingKey,
+                             @(YES),
+                             OBJC_ASSOCIATION_COPY_NONATOMIC);
+  }
+
+  if ([theEvent type] == NSEventTypeLeftMouseUp && isDragging.boolValue) {
+    objc_setAssociatedObject(obj,
+                             &kIsDraggingKey,
+                             @(NO),
+                             OBJC_ASSOCIATION_COPY_NONATOMIC);
+  } else {
+    ((void(*) (id, SEL, NSEvent*))g_originalMouseEvent)(obj, sel, theEvent);
   }
 }
 
