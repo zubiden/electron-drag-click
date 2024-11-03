@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <style>
+      .drag-container {
+        -webkit-app-region: drag;
+        background-color: cadetblue;
+
+        padding: 40px;
+        margin: 40px;
+        width: 200px;
+        height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>draggability test</h1>
+
+    <div class="drag-container">
+      <h2>can be dragged</h2>
+
+      <span>0</span> <br>
+
+      <input type="text" placeholder="type..." />
+
+      <button id="foo">cannot be clicked</button>
+    </div>
+
+    <input type="text" placeholder="type..." />
+
+    <button id="bar">can be clicked</button>
+
+    <script>
+      window.onload = () => {
+        let counter = 0;
+
+        const foo = document.getElementById('foo');
+        const bar = document.getElementById('bar');
+        const span = document.querySelector('span');
+
+        const inc = () => {
+          span.innerText = ++counter
+        };
+
+        foo.addEventListener('click', inc);
+        bar.addEventListener('click', inc);
+      }
+    </script>
+  </body>
+</html>
