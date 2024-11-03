@@ -14,7 +14,7 @@ NSView* viewUnderneathPoint(NSView* self, NSPoint point) {
   NSArray *views = [contentView subviews];
 
   for (NSView *v in views) {
-    if (v != self) {
+    if (v != self && ![v isKindOfClass:[NSVisualEffectView class]]) {
       NSPoint pointInView = [v convertPoint:point fromView:nil];
       if ([v hitTest:pointInView] && [v mouse:pointInView inRect:v.bounds]) {
         return v;
@@ -26,7 +26,7 @@ NSView* viewUnderneathPoint(NSView* self, NSPoint point) {
 
 NSView* swizzledHitTest(id obj, SEL sel, NSPoint point) {
   NSView* originalReturn =
-    ((NSView*(*) (id, SEL, NSPoint))g_originalHitTest) (obj, sel, point);
+    ((NSView*(*) (id, SEL, NSPoint))g_originalHitTest)(obj, sel, point);
 
   NSNumber* isDraggable = @(originalReturn == nil);
   objc_setAssociatedObject(obj,
@@ -40,7 +40,7 @@ NSView* swizzledHitTest(id obj, SEL sel, NSPoint point) {
 }
 
 void swizzledMouseEvent(id obj, SEL sel, NSEvent* theEvent) {
-  ((void(*) (id, SEL, NSEvent*))g_originalMouseEvent) (obj, sel, theEvent);
+  ((void(*) (id, SEL, NSEvent*))g_originalMouseEvent)(obj, sel, theEvent);
 
   NSView* view = obj;
   NSNumber* isDragging = objc_getAssociatedObject(view.window.contentView,

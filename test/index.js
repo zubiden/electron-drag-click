@@ -8,6 +8,8 @@ app.on('ready', () => {
     width: 800,
     height: 600,
     frame: false,
+    transparent: true,
+    vibrancy: 'sidebar',
   });
 
   win.loadFile('./index.html');
