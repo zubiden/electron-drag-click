@@ -9,12 +9,12 @@ static IMP g_originalMouseEvent;
 
 static char kIsDraggableKey;
 static char kIsDraggingKey;
+static char kMouseEventTypeKey;
 
 NSView* viewUnderneathPoint(NSView* self, NSPoint point) {
   NSView *contentView = self.window.contentView;
-  NSArray *views = [contentView subviews];
 
-  for (NSView *v in views) {
+  for (NSView *v in contentView.subviews.reverseObjectEnumerator) {
     if (v != self && ![v isKindOfClass:[NSVisualEffectView class]]) {
       NSPoint pointInView = [v convertPoint:point fromView:nil];
       if ([v hitTest:pointInView] && [v mouse:pointInView inRect:v.bounds]) {
@@ -46,13 +46,19 @@ void swizzledMouseEvent(id obj, SEL sel, NSEvent* theEvent) {
                                                   &kIsDraggableKey);
   NSNumber* isDragging = objc_getAssociatedObject(obj,
                                                   &kIsDraggingKey);
+  NSNumber* previousEventType = objc_getAssociatedObject(obj,
+                                                         &kMouseEventTypeKey);
 
   if ([theEvent type] == NSEventTypeLeftMouseDown && isDraggable.boolValue) {
     NSView* self = obj;
     [self.window performWindowDragWithEvent:theEvent];
   }
 
-  if ([theEvent type] == NSEventTypeLeftMouseDragged && isDraggable.boolValue) {
+  BOOL isPreviousMouseDown =
+    previousEventType.integerValue == NSEventTypeLeftMouseDown;
+  BOOL isCurrentMouseDragged = [theEvent type] == NSEventTypeLeftMouseDragged;
+
+  if (isPreviousMouseDown && isCurrentMouseDragged && isDraggable.boolValue) {
     objc_setAssociatedObject(obj,
                              &kIsDraggingKey,
                              @(YES),
@@ -67,6 +73,11 @@ void swizzledMouseEvent(id obj, SEL sel, NSEvent* theEvent) {
   } else {
     ((void(*) (id, SEL, NSEvent*))g_originalMouseEvent)(obj, sel, theEvent);
   }
+
+  objc_setAssociatedObject(obj,
+                           &kMouseEventTypeKey,
+                           @([theEvent type]),
+                           OBJC_ASSOCIATION_COPY_NONATOMIC);
 }
 
 void Setup(const Napi::CallbackInfo &info) {
