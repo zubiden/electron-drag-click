@@ -1,6 +1,6 @@
 {
   "name": "electron-drag-click",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A native module that propagates click events to draggable areas in Electron on macOS.",
   "main": "index.js",
   "scripts": {
