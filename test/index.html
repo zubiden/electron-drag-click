@@ -31,11 +31,14 @@
       <input type="text" placeholder="type..." />
 
       <button id="foo">cannot be clicked</button>
+
+      <button id="dbl2">can be doubleclicked</button>
     </div>
 
     <input type="text" placeholder="type..." />
 
     <button id="bar">can be clicked</button>
+    <button id="dbl">can be doubleclicked</button>
 
     <script>
       window.onload = () => {
@@ -43,6 +46,8 @@
 
         const foo = document.getElementById('foo');
         const bar = document.getElementById('bar');
+        const dbl = document.getElementById('dbl');
+        const dbl2 = document.getElementById('dbl2');
         const span = document.querySelector('span');
 
         const inc = () => {
@@ -51,6 +56,8 @@
 
         foo.addEventListener('click', inc);
         bar.addEventListener('click', inc);
+        dbl.addEventListener('dblclick', inc);
+        dbl2.addEventListener('dblclick', inc);
       }
     </script>
   </body>

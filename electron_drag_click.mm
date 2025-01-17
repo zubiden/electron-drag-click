@@ -27,15 +27,22 @@ NSView* viewUnderneathPoint(NSView* self, NSPoint point) {
 }
 
 NSView* swizzledHitTest(id obj, SEL sel, NSPoint point) {
+  NSView* view = obj;
   NSView* originalReturn =
     ((NSView*(*) (id, SEL, NSPoint))g_originalHitTest)(obj, sel, point);
+
+  // Do the original implementation when window is not focused, so window can be
+  // dragged immediately even, when not focused.
+  if (!view.window.isKeyWindow) {
+    return originalReturn;
+  }
 
   objc_setAssociatedObject(obj,
                            &kIsDraggableKey,
                            @(originalReturn == nil),
                            OBJC_ASSOCIATION_COPY_NONATOMIC);
 
-  NSView* viewUnderPoint = viewUnderneathPoint(obj, point);
+  NSView* viewUnderPoint = viewUnderneathPoint(view, point);
 
   return [viewUnderPoint hitTest:point];
 }
