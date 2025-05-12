@@ -15,8 +15,8 @@
             "defines": [ "NAPI_DISABLE_CPP_EXCEPTIONS" ],
             "xcode_settings": {
               "OTHER_CPLUSPLUSFLAGS": [
-                "-std=c20",
-                "-stdlib=libc",
+                "-std=c++20",
+                "-stdlib=libc++",
                 "-mmacosx-version-min=10.12"
               ]
             }
